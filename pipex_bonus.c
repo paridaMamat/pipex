@@ -15,7 +15,13 @@
 void	first_cmd(t_pipex *pipex, char **av, char *envp[])
 {
 	if (pipex->infile == -1)
+	{
+		close(pipex->outfile);
+		close(pipex->infile);
+		close(pipex->end[1]);
+		close(pipex->end[0]);
 		exit_perror("infile not found\n", 127);
+	}
 	else
 	{
 		if (dup2(pipex->infile, 0) == -1)
