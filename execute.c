@@ -75,8 +75,10 @@ void	execute(t_pipex *pipex, char *cmd, char **envp)
 		pipex->path = get_path(pipex, envp);
 		pipex->cmd = get_cmd(pipex->path, pipex->cmd_arg[0]);
 		free_array(pipex->path);
-		if (pipex->cmd)
+		if (pipex->cmd != NULL)
 			result = execve(pipex->cmd, pipex->cmd_arg, envp);
+		else
+			result = -1;
 		free(pipex->cmd);
 		free_array(pipex->cmd_arg);
 	}
