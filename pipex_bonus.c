@@ -17,7 +17,6 @@ void	first_cmd(t_pipex *pipex, char **av, char *envp[])
 	if (pipex->infile == -1)
 	{
 		close(pipex->outfile);
-		close(pipex->infile);
 		close(pipex->end[1]);
 		close(pipex->end[0]);
 		exit_perror("infile not found\n", 127);
@@ -28,7 +27,8 @@ void	first_cmd(t_pipex *pipex, char **av, char *envp[])
 			exit_perror("dup2 fail\n", 1);
 		if (dup2(pipex->end[1], 1) == -1)
 			exit_perror("dup2 fail\n", 1);
-		close(pipex->outfile);
+		if (pipex->outfile != -1)
+			close(pipex->outfile);
 		close(pipex->infile);
 		close(pipex->end[1]);
 		close(pipex->end[0]);
@@ -54,7 +54,8 @@ void	first_command(char **av, t_pipex *pipex, char *envp[])
 		if (dup2(pipex->end[0], 0) == -1)
 			exit_perror("dup2 fail\n", 1);
 		close(pipex->end[0]);
-		close(pipex->infile);
+		if (pipex->infile != -1)
+			close(pipex->infile);
 	}
 }
 
@@ -101,8 +102,6 @@ void	open_file(int ac, char **av, t_pipex *pipex)
 		pipex->infile = open(av[1], O_RDONLY);
 		pipex->outfile = open(av[ac - 1], O_CREAT | O_RDWR | O_TRUNC, 0644);
 	}
-	if (pipex->outfile == -1)
-		exit_perror("outfile", 1);
 }
 
 int	main(int ac, char **av, char *envp[])
@@ -114,11 +113,14 @@ int	main(int ac, char **av, char *envp[])
 		exit_perror("Invalid number of argument\n", 1);
 	open_file(ac, av, &pipex);
 	first_command(av, &pipex, envp);
-	i = 2;
+	i = 3;
 	if (pipex.here_doc == 1)
-		i = 3;
-	while (i++ < ac - 2)
+		i = 4;
+	while (i < ac - 2)
+	{
 		multiple_pipe(&pipex, av[i], envp);
+		i++;
+	}
 	last_pipe(&pipex, av[ac - 2], envp);
 	while (i != -1 || errno != ECHILD)
 		i = waitpid(-1, NULL, 0);
