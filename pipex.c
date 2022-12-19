@@ -34,7 +34,11 @@ void	second_child(t_pipex *pipex, char **av, char **envp)
 {
 	pipex->outfile = open(av[4], O_CREAT | O_RDWR | O_TRUNC, 0644);
 	if (pipex->outfile == -1)
+	{
+		close(pipex->end[0]);
+		close(pipex->end[1]);
 		exit_perror("outfile", 1);
+	}
 	if (dup2(pipex->end[0], 0) == -1)
 		exit_perror("dup2 fail\n", 1);
 	if (dup2(pipex->outfile, 1) == -1)
