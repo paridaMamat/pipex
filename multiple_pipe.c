@@ -21,10 +21,18 @@ void	last_pipe(t_pipex *pipex, char *av, char *envp[])
 		exit_perror("fork error\n", 1);
 	if (pipex->pid2[2] == 0)
 	{
+		if (pipex->outfile == -1)
+		{
+			close(pipex->end[0]);
+			close(pipex->end[1]);
+			exit_perror("outfile", 1);
+		}
+		if (dup2(pipex->end[0], 0) == -1)
+			exit_perror("dup2 fail\n", 1);
 		if (dup2(pipex->outfile, 1) == -1)
 			exit_perror("dup2 fail\n", 1);
-		close(pipex->outfile);
 		close(pipex->end[1]);
+		close(pipex->outfile);
 		close(pipex->end[0]);
 		execute(pipex, av, envp);
 	}
@@ -34,7 +42,8 @@ void	last_pipe(t_pipex *pipex, char *av, char *envp[])
 		if (dup2(pipex->end[0], 0) == -1)
 			exit_perror("dup2 fail\n", 1);
 		close(pipex->end[0]);
-		close(pipex->outfile);
+		if (pipex->outfile != -1)
+			close(pipex->outfile);
 	}
 }
 
@@ -49,7 +58,8 @@ void	multiple_pipe(t_pipex *pipex, char *av, char *envp[])
 	{
 		if (dup2(pipex->end[1], 1) == -1)
 			exit_perror("dup2 fail\n", 1);
-		close(pipex->outfile);
+		if (pipex->outfile != -1)
+			close(pipex->outfile);
 		close(pipex->end[0]);
 		close(pipex->end[1]);
 		execute(pipex, av, envp);
